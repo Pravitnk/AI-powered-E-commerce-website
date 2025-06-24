@@ -10,7 +10,10 @@ connectDB(); // 🔗 Connect to MongoDB
 const app = express();
 // middleware, routes etc...
 app.use(express.json()); // for parsing application/json
-app.use(cookieParser)
-app.use("/api/auth",authRoute)
-const PORT = process.env.PORT ||5000;
+app.use(cookieParser());
+app.use("/api/auth", authRoute);
+app.get("/", (req, res) => {
+  res.send("jelp");
+});
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
