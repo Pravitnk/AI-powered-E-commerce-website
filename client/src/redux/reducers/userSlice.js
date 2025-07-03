@@ -30,7 +30,7 @@ export const updateUser = createAsyncThunk(
   "user/updateUser",
   async (userData, { rejectWithValue }) => {
     try {
-      const res = await axios.put(`${APIUser}/update`, userData, {
+      const res = await axios.patch(`${APIUser}/update`, userData, {
         withCredentials: true,
         headers: {
           "Content-Type": "application/json", // important

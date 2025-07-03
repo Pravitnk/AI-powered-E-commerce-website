@@ -1,11 +1,19 @@
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { v2 as cloudinary } from "cloudinary";
+import dotenv from "dotenv";
+dotenv.config();
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+console.log("Cloudinary ENV:", {
+  name: process.env.CLOUDINARY_CLOUD_NAME,
+  key: process.env.CLOUDINARY_API_KEY,
+  secret: process.env.CLOUDINARY_API_SECRET ? "SET" : "MISSING",
 });
 
 export const getUserDetail = async (req, res) => {
@@ -86,6 +94,8 @@ export const updateUser = async (req, res) => {
         });
         pictureUrl = uploaded.secure_url;
       } catch (uploadErr) {
+        console.error("error is ", uploadErr);
+
         return res.status(500).json({
           success: false,
           message: "Image upload failed",

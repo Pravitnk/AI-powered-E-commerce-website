@@ -22,7 +22,7 @@ const Profile = () => {
         <CardContent className="space-y-6">
           <div className="flex justify-center">
             <img
-              src={user?.profilePic || "/placeholder.jpg"}
+              src={user?.picture || "/placeholder.jpg"}
               alt="Profile"
               className="h-24 w-24 rounded-full object-cover border"
             />

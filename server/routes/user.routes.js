@@ -5,6 +5,6 @@ import isAuth from "../middleware/isAuth.js";
 const userRoute = express.Router();
 
 userRoute.get("/details", isAuth, getUserDetail);
-userRoute.put("/update", isAuth, updateUser);
+userRoute.patch("/update", isAuth, updateUser);
 
 export default userRoute;
