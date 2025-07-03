@@ -1,18 +1,27 @@
 import { v2 as cloudinary } from "cloudinary";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
+import fs from "fs";
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+const uploadOnCloudinary = async (filePath) => {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+  try {
+    if (!path) {
+      res
+        .status(401)
+        .json({ success: false, message: "No path found or invalid" });
+    }
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: "user_profiles", // Folder name in Cloudinary
-    allowed_formats: ["jpg", "png", "jpeg"],
-  },
-});
+    const uploadResult = await cloudinary.uploader.upload(filePath);
+    fs.unlinkSync(filePath);
 
-export { cloudinary, storage };
+    return uploadResult.secure_url;
+  } catch (error) {
+    fs.unlinkSync(filePath);
+    res.status(401).json({ success: false, message: `${error}` });
+  }
+};
+
+export default uploadOnCloudinary;

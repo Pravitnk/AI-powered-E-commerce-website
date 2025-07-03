@@ -1,35 +1,51 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Login from "./pages/Login";
+import Home from "./pages/Home";
+import Order from "./pages/Order";
+import Product from "./pages/Product";
+import List from "./pages/List";
+import { Toaster } from "react-hot-toast";
+import Header from "./components/Header";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { fetchAdmin } from "./redux/reducer/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const dispatch = useDispatch();
+  const { admin, isFetchingAdmin } = useSelector((state) => state.auth);
+  console.log("admin -", admin);
 
+  // if (isFetchingAdmin) {
+  //   return (
+  //     <div className="flex justify-center items-center h-screen">
+  //       Loading...
+  //     </div>
+  //   );
+  // }
+
+  useEffect(() => {
+    dispatch(fetchAdmin());
+  }, []);
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white transition-colors duration-300">
+      <Router>
+        <Toaster position="buttom-right" reverseOrder={false} />
 
-export default App
+        <Header />
+        <Routes>
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/orders" element={<Order />} />
+            <Route path="/product" element={<Product />} />
+            <Route path="/lists" element={<List />} />
+            {/* Add more protected routes here if needed */}
+          </Route>
+          <Route path="login" element={<Login />} />
+        </Routes>
+      </Router>
+    </div>
+  );
+};
+
+export default App;

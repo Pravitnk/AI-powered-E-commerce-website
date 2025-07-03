@@ -1,7 +1,7 @@
 import User from "../models/user.model.js";
 import validator from "validator";
 import bcrypt from "bcryptjs";
-import generateToken from "../config/token.js";
+import { generateToken, generateTokenForAdmin } from "../config/token.js";
 
 export const register = async (req, res) => {
   try {
@@ -291,11 +291,79 @@ export const googleLogin = async (req, res) => {
     });
   } catch (error) {
     console.error("Google login error:", error);
-    res
-      .status(500)
-      .json({
+    res.status(500).json({
+      success: false,
+      message: `Google login failed: ${error.message}`,
+    });
+  }
+};
+
+export const adminLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // ✅ 1. Validate input
+    if (!email || !password) {
+      return res.status(400).json({
         success: false,
-        message: `Google login failed: ${error.message}`,
+        message: "Email and password are required.",
       });
+    }
+
+    // ✅ 2. Check against environment credentials
+    const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+    if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials.",
+      });
+    }
+
+    // ✅ 3. Generate JWT token
+    const token = await generateTokenForAdmin(email);
+
+    // ✅ 4. Set cookie securely
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // use HTTPS in production
+      sameSite: "Strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // ✅ 5. Respond
+    return res.status(200).json({
+      success: true,
+      message: "Admin logged in successfully.",
+      token,
+    });
+  } catch (error) {
+    console.error("Admin login error:", error);
+    return res.status(500).json({
+      success: false,
+      message: `Login failed: ${error.message}`,
+    });
+  }
+};
+
+export const logoutAdmin = async (req, res) => {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      sameSite: "Strict",
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully.",
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Logout failed.",
+    });
   }
 };

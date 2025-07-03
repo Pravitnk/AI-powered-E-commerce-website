@@ -137,13 +137,13 @@ const Header = () => {
 
             <button
               onClick={() => dispatch(toggleTheme())}
-              className="text-xl p-1 rounded hover:bg-gray-100 transition-colors"
+              className="text-xl p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               aria-label="Toggle Theme"
             >
               {theme === "light" ? (
                 <IoSunnyOutline />
               ) : (
-                <IoSunnySharp className="text-black" />
+                <IoSunnySharp className="text-yellow-300" />
               )}
             </button>
           </>
@@ -186,6 +186,25 @@ const Header = () => {
                       className="text-left text-red-500"
                     >
                       🚪 Logout
+                    </button>
+
+                    {/* Theme toggle inside drawer */}
+                    <button
+                      onClick={() => {
+                        dispatch(toggleTheme());
+                      }}
+                      className="flex items-center gap-2 text-sm mt-4"
+                    >
+                      {theme === "light" ? (
+                        <>
+                          <IoSunnyOutline /> Switch to Dark
+                        </>
+                      ) : (
+                        <>
+                          <IoSunnySharp className="text-yellow-300" /> Switch to
+                          Light
+                        </>
+                      )}
                     </button>
                   </>
                 ) : (

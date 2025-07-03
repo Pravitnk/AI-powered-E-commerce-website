@@ -1,8 +1,14 @@
 import multer from "multer";
-import { storage } from "../config/cloudinary.js";
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./public");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
 
 const upload = multer({ storage });
 
-// app.post("/api/upload", upload.single("image"), (req, res) => {
-//   res.json({ url: req.file.path }); // file.path is the Cloudinary URL
-// });
+export default upload;

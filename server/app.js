@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import authRoute from "./routes/auth.routes.js";
 import cors from "cors";
 import userRoute from "./routes/user.routes.js";
+import productRoute from "./routes/product.routes.js";
 
 dotenv.config();
 connectDB(); // 🔗 Connect to MongoDB
@@ -13,7 +14,7 @@ const app = express();
 // middleware, routes etc...
 app.use(
   cors({
-    origin: "http://localhost:5173", // your frontend URL
+    origin: ["http://localhost:5173", "http://localhost:5174"], // your frontend URL
     credentials: true,
   })
 );
@@ -22,6 +23,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
+app.use("/api/product", productRoute);
 app.get("/", (req, res) => {
   res.send("jelp");
 });

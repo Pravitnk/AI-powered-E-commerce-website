@@ -128,3 +128,26 @@ export const updateUser = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+// controllers/admin.controller.js
+
+export const getAdmin = async (req, res) => {
+  try {
+    const adminEmail = req.adminEmail;
+    if (!adminEmail) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Admin not found...!" });
+    }
+
+    res.status(201).json({
+      success: true,
+      admin: {
+        email: adminEmail,
+        role: "admin",
+      },
+    });
+  } catch (error) {
+    res.status(401).json({ success: false, message: "Invalid token" });
+  }
+};
