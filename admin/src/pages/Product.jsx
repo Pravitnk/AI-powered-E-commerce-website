@@ -1,166 +1,112 @@
 import React, { useState } from "react";
+import AddProduct from "./AddProduct";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { FaCircleChevronLeft } from "react-icons/fa6";
+import { FaCircleChevronRight } from "react-icons/fa6";
 
-const AddProduct = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    images: [],
-    description: "",
-    price: "",
-    category: "",
-    subCategory: "",
-    sizes: "",
-    bestSeller: false,
-  });
+const Product = () => {
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked, files } = e.target;
-    if (type === "file") {
-      setFormData((prev) => ({ ...prev, images: Array.from(files) }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: type === "checkbox" ? checked : value,
-      }));
-    }
+  const handleAddProduct = (product) => {
+    setProducts((prev) => [...prev, product]);
   };
 
-  const handleSelectChange = (name, value) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const nextImage = () => {
+    setCurrentImageIndex(
+      (prev) => (prev + 1) % selectedProduct.imagePreviews.length
+    );
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // TODO: Submit formData to backend API
-    console.log(formData);
+  const prevImage = () => {
+    setCurrentImageIndex(
+      (prev) =>
+        (prev - 1 + selectedProduct.imagePreviews.length) %
+        selectedProduct.imagePreviews.length
+    );
   };
 
   return (
-    <div className="p-4 w-full flex justify-center">
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button className="bg-orange-500 text-white">Add Product</Button>
-        </DialogTrigger>
-        <DialogContent className="max-w-2xl w-full">
-          <DialogHeader>
-            <DialogTitle>Add New Product</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Card>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-                <Input
-                  name="name"
-                  placeholder="Product Name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                />
-                <Input
-                  name="price"
-                  type="number"
-                  placeholder="Price"
-                  value={formData.price}
-                  onChange={handleChange}
-                  required
-                />
-                <Select
-                  onValueChange={(val) => handleSelectChange("category", val)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Clothing">Clothing</SelectItem>
-                    <SelectItem value="Electronics">Electronics</SelectItem>
-                    <SelectItem value="Footwear">Footwear</SelectItem>
-                    <SelectItem value="Accessories">Accessories</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select
-                  onValueChange={(val) =>
-                    handleSelectChange("subCategory", val)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Subcategory" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Shirts">Shirts</SelectItem>
-                    <SelectItem value="Mobiles">Mobiles</SelectItem>
-                    <SelectItem value="Sneakers">Sneakers</SelectItem>
-                    <SelectItem value="Watches">Watches</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input
-                  name="sizes"
-                  placeholder="Sizes (comma separated)"
-                  value={formData.sizes}
-                  onChange={handleChange}
-                  required
-                />
-                <div className="col-span-2">
-                  <Label htmlFor="images" className="mb-3">
-                    Upload Images
-                  </Label>
-                  <Input
-                    id="images"
-                    name="images"
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              </CardContent>
-            </Card>
-            <Textarea
-              name="description"
-              placeholder="Description"
-              value={formData.description}
-              onChange={handleChange}
-              className="w-full"
-              required
-            />
-            <div className="flex items-center space-x-2">
-              <input
-                id="bestSeller"
-                name="bestSeller"
-                type="checkbox"
-                checked={formData.bestSeller}
-                onChange={handleChange}
+    <div className="p-4 w-full flex flex-col items-center space-y-6">
+      <AddProduct onProductAdd={handleAddProduct} />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-6xl">
+        {products.map((product) => (
+          <Card
+            key={product.id}
+            className="cursor-pointer"
+            onClick={() => {
+              setSelectedProduct(product);
+              setCurrentImageIndex(0);
+            }}
+          >
+            <CardContent className="p-4 space-y-2">
+              <img
+                src={product.imagePreviews[0]}
+                alt={product.name}
+                className="w-full h-40 object-cover rounded-md"
               />
-              <label htmlFor="bestSeller">Best Seller</label>
+              <h3 className="font-semibold text-lg">{product.name}</h3>
+              <p className="text-sm">₹{product.price}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {selectedProduct && (
+        <Dialog
+          open={!!selectedProduct}
+          onOpenChange={() => setSelectedProduct(null)}
+        >
+          <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{selectedProduct.name}</DialogTitle>
+            </DialogHeader>
+
+            <div className="relative w-full flex items-center justify-center">
+              <button
+                onClick={prevImage}
+                className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-gray-200 dark:bg-gray-700 rounded-full p-2"
+              >
+                <FaCircleChevronLeft size={24} />
+              </button>
+              <img
+                src={selectedProduct.imagePreviews[currentImageIndex]}
+                alt={`Image ${currentImageIndex + 1}`}
+                className="w-full max-h-[60vh] object-contain rounded-md"
+              />
+              <button
+                onClick={nextImage}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-gray-200 dark:bg-gray-700 rounded-full p-2"
+              >
+                <FaCircleChevronRight size={24} />
+              </button>
             </div>
-            <DialogFooter>
-              <Button type="submit" className="bg-orange-500 text-white">
-                Submit
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+
+            <div className="mt-4 space-y-1">
+              <p>{selectedProduct.description}</p>
+              <p>
+                Category: {selectedProduct.category} /{" "}
+                {selectedProduct.subCategory}
+              </p>
+              <p>Sizes: {selectedProduct.sizes}</p>
+              <p>Price: ₹{selectedProduct.price}</p>
+              {selectedProduct.bestSeller && (
+                <p className="text-green-500 font-semibold">Best Seller</p>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
 
-export default AddProduct;
+export default Product;
