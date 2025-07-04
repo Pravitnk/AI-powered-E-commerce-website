@@ -18,8 +18,14 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { useDispatch, useSelector } from "react-redux";
+import { addProduct } from "@/redux/reducer/productSlice";
+import toast from "react-hot-toast";
 
 const AddProduct = ({ onProductAdd }) => {
+  const dispatch = useDispatch();
+  const { products, loading, error } = useSelector((state) => state.product);
+
   const [open, setOpen] = useState(false); // 🔁 manually control dialog
   const [formData, setFormData] = useState({
     name: "",
@@ -61,28 +67,49 @@ const AddProduct = ({ onProductAdd }) => {
       sizes.trim()
     );
   };
-
-  const handleSubmit = (e) => {
+  // if (files.length !== 4) {
+  //   toast.error("Please select exactly 4 images.");
+  //   return;
+  // }
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newProduct = {
-      ...formData,
-      id: Date.now(),
-      imagePreviews: formData.images.map((file) => URL.createObjectURL(file)),
-    };
-    isFormValid();
-    onProductAdd(newProduct);
-    setOpen(false); // ✅ close dialog
 
-    setFormData({
-      name: "",
-      images: [],
-      description: "",
-      price: "",
-      category: "",
-      subCategory: "",
-      sizes: "",
-      bestSeller: false,
+    if (!isFormValid()) return;
+
+    const data = new FormData();
+    data.append("name", formData.name);
+    data.append("description", formData.description);
+    data.append("price", formData.price);
+    data.append("category", formData.category);
+    data.append("subCategory", formData.subCategory);
+    data.append("sizes", JSON.stringify(formData.sizes.split(",")));
+    data.append("bestSeller", formData.bestSeller);
+
+    // Append each image with unique field name (like backend expects: image1, image2, ...)
+    formData.images.forEach((file, idx) => {
+      data.append(`image${idx + 1}`, file);
     });
+
+    try {
+      await dispatch(addProduct(data)).unwrap(); // waits for promise to resolve or throw
+      toast.success("Product added successfully");
+
+      setOpen(false); // Close dialog
+      setFormData({
+        name: "",
+        images: [],
+        description: "",
+        price: "",
+        category: "",
+        subCategory: "",
+        sizes: "",
+        bestSeller: false,
+      });
+    } catch (error) {
+      toast.error(`Failed to add product: ${error}`);
+      console.error("Failed to add product:", error);
+      // Optional: show toast or error UI
+    }
   };
 
   return (
@@ -138,13 +165,14 @@ const AddProduct = ({ onProductAdd }) => {
             required
           />
           <Label>Upload Images</Label>
-          <Input
+          <input
             type="file"
             name="images"
             accept="image/*"
             multiple
             onChange={handleChange}
             required
+            maxLength={4}
           />
           <Textarea
             name="description"
@@ -164,12 +192,8 @@ const AddProduct = ({ onProductAdd }) => {
             <label htmlFor="bestSeller">Best Seller</label>
           </div>
           <DialogFooter>
-            <Button
-              type="submit"
-              onClick={() => setOpen(false)}
-              disabled={!isFormValid()}
-            >
-              Submit
+            <Button type="submit" disabled={!isFormValid() || loading}>
+              {loading ? "Adding..." : "Submit"}
             </Button>
           </DialogFooter>
         </form>

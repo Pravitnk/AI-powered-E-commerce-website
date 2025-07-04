@@ -3,6 +3,8 @@ import Product from "../models/product.model.js";
 
 //create/add product (POST)
 export const addProduct = async (req, res) => {
+  console.log("🟡 Incoming request to add product");
+
   try {
     const {
       name,
@@ -13,12 +15,58 @@ export const addProduct = async (req, res) => {
       sizes,
       bestSeller,
     } = req.body;
+    console.log("🧾 req.files:", req.files);
 
-    const image1 = await uploadOnCloudinary(req.files.image1[0].path);
-    const image2 = await uploadOnCloudinary(req.files.image2[0].path);
-    const image3 = await uploadOnCloudinary(req.files.image3[0].path);
-    const image4 = await uploadOnCloudinary(req.files.image4[0].path);
+    // 1. Validate fields
+    if (
+      !name ||
+      !description ||
+      !price ||
+      !category ||
+      !subCategory ||
+      !sizes ||
+      !req.files?.image1 ||
+      !req.files?.image2 ||
+      !req.files?.image3 ||
+      !req.files?.image4
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "All required fields and 4 images must be provided",
+      });
+    }
 
+    console.log("🟢 All required data received");
+
+    // 2. Upload images
+    // const imageUploads = await Promise.all([
+    //   uploadOnCloudinary(req.files.image1[0].path),
+    //   uploadOnCloudinary(req.files.image2[0].path),
+    //   uploadOnCloudinary(req.files.image3[0].path),
+    //   uploadOnCloudinary(req.files.image4[0].path),
+    // ]);
+
+    const imagePaths = ["image1", "image2", "image3", "image4"].map((key) => {
+      if (!req.files[key] || !req.files[key][0]?.path) {
+        throw new Error(`Missing image file: ${key}`);
+      }
+      return req.files[key][0].path;
+    });
+
+    const imageUploads = await Promise.all(
+      imagePaths.map((filePath) => uploadOnCloudinary(filePath))
+    );
+
+    if (imageUploads.some((url) => !url)) {
+      return res.status(500).json({
+        success: false,
+        message: "One or more image uploads failed",
+      });
+    }
+
+    console.log("✅ All images uploaded");
+
+    // 3. Create product object
     const productData = {
       name,
       description,
@@ -26,29 +74,31 @@ export const addProduct = async (req, res) => {
       category,
       subCategory,
       sizes: JSON.parse(sizes),
-      bestSeller: bestSeller === "true" ? true : false,
+      bestSeller: bestSeller === "true",
       date: Date.now(),
-      image1,
-      image2,
-      image3,
-      image4,
+      image1: imageUploads[0],
+      image2: imageUploads[1],
+      image3: imageUploads[2],
+      image4: imageUploads[3],
     };
 
+    // 4. Save to DB
     const product = await Product.create(productData);
+    console.log("✅ Product saved to DB");
 
     return res.status(201).json({
       success: true,
-      message: "Product Added Successfully",
+      message: "Product added successfully",
       product,
     });
   } catch (error) {
-    return res.status(201).json({
+    console.error("❌ Error while adding product:", error.message);
+    return res.status(500).json({
       success: false,
-      message: `Error while adding product is ${error}`,
+      message: `Error while adding product: ${error.message}`,
     });
   }
 };
-
 //get product (GET)
 export const getProduct = async (req, res) => {
   try {

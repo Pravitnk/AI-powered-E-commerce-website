@@ -7,20 +7,23 @@ const uploadOnCloudinary = async (filePath) => {
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
   });
+
   try {
-    if (!path) {
-      res
-        .status(401)
-        .json({ success: false, message: "No path found or invalid" });
+    if (!filePath) {
+      throw new Error("File path is missing");
     }
 
     const uploadResult = await cloudinary.uploader.upload(filePath);
-    fs.unlinkSync(filePath);
+    fs.unlinkSync(filePath); // Clean up local file
 
     return uploadResult.secure_url;
   } catch (error) {
-    fs.unlinkSync(filePath);
-    res.status(401).json({ success: false, message: `${error}` });
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath); // Clean up even on error
+    }
+
+    console.error("Cloudinary Upload Error:", error.message);
+    return null;
   }
 };
 

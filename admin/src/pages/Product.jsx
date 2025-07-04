@@ -7,40 +7,37 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FaCircleChevronLeft } from "react-icons/fa6";
-import { FaCircleChevronRight } from "react-icons/fa6";
+import { FaCircleChevronLeft, FaCircleChevronRight } from "react-icons/fa6";
+import { useSelector } from "react-redux";
 
 const Product = () => {
-  const [products, setProducts] = useState([]);
+  const { products, loading, error } = useSelector((state) => state.product);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const handleAddProduct = (product) => {
-    setProducts((prev) => [...prev, product]);
-  };
-
   const nextImage = () => {
-    setCurrentImageIndex(
-      (prev) => (prev + 1) % selectedProduct.imagePreviews.length
-    );
+    const images = getImageArray(selectedProduct);
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
 
   const prevImage = () => {
-    setCurrentImageIndex(
-      (prev) =>
-        (prev - 1 + selectedProduct.imagePreviews.length) %
-        selectedProduct.imagePreviews.length
-    );
+    const images = getImageArray(selectedProduct);
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  const getImageArray = (product) => {
+    if (!product) return [];
+    return [product.image1, product.image2, product.image3, product.image4];
   };
 
   return (
     <div className="p-4 w-full flex flex-col items-center space-y-6">
-      <AddProduct onProductAdd={handleAddProduct} />
+      <AddProduct />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-6xl">
         {products.map((product) => (
           <Card
-            key={product.id}
+            key={product._id}
             className="cursor-pointer"
             onClick={() => {
               setSelectedProduct(product);
@@ -49,7 +46,7 @@ const Product = () => {
           >
             <CardContent className="p-4 space-y-2">
               <img
-                src={product.imagePreviews[0]}
+                src={product.image1}
                 alt={product.name}
                 className="w-full h-40 object-cover rounded-md"
               />
@@ -78,7 +75,7 @@ const Product = () => {
                 <FaCircleChevronLeft size={24} />
               </button>
               <img
-                src={selectedProduct.imagePreviews[currentImageIndex]}
+                src={getImageArray(selectedProduct)[currentImageIndex]}
                 alt={`Image ${currentImageIndex + 1}`}
                 className="w-full max-h-[60vh] object-contain rounded-md"
               />
@@ -96,7 +93,7 @@ const Product = () => {
                 Category: {selectedProduct.category} /{" "}
                 {selectedProduct.subCategory}
               </p>
-              <p>Sizes: {selectedProduct.sizes}</p>
+              <p>Sizes: {selectedProduct.sizes.join(", ")}</p>
               <p>Price: ₹{selectedProduct.price}</p>
               {selectedProduct.bestSeller && (
                 <p className="text-green-500 font-semibold">Best Seller</p>
