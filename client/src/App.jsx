@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import EditProfile from "./pages/Profile";
 import { Toaster } from "react-hot-toast";
 import { getUser } from "./redux/reducers/userSlice";
+import Products from "./pages/Products";
 
 const App = () => {
   const theme = useSelector((state) => state.theme.mode); // 'light' or 'dark'
@@ -37,6 +38,7 @@ const App = () => {
           <Route path="register" element={<Register />} />
           <Route path="login" element={<Login />} />
           <Route path="profile" element={<EditProfile />} />
+          <Route path="products" element={<Products />} />
         </Routes>
       </Router>
     </div>

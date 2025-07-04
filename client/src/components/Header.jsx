@@ -42,8 +42,11 @@ const Header = () => {
           <Link to="/" className="hover:text-black transition duration-200">
             Home
           </Link>
-          <Link to="/shop" className="hover:text-black transition duration-200">
-            Shop
+          <Link
+            to="/products"
+            className="hover:text-black transition duration-200"
+          >
+            Products
           </Link>
           <Link
             to="/about"
@@ -161,8 +164,8 @@ const Header = () => {
                 <Link to="/" onClick={() => setOpen(false)}>
                   Home
                 </Link>
-                <Link to="/shop" onClick={() => setOpen(false)}>
-                  Shop
+                <Link to="/products" onClick={() => setOpen(false)}>
+                  Products
                 </Link>
                 <Link to="/about" onClick={() => setOpen(false)}>
                   About
