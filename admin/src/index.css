@@ -4,6 +4,10 @@
 /* @custom-variant dark (&:is(.dark *)); */
 @custom-variant dark (&:where(.dark, .dark *));
 
+.btn-primary {
+  @apply bg-orange-500 text-white hover:bg-orange-600 transition rounded px-4 py-2;
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

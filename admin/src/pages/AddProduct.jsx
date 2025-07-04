@@ -115,7 +115,9 @@ const AddProduct = ({ onProductAdd }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button onClick={() => setOpen(true)}>Add Product</Button>
+        <Button onClick={() => setOpen(true)} className="btn-primary">
+          Add Product
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl w-full">
         <DialogHeader>

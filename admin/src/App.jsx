@@ -14,9 +14,8 @@ import { useEffect } from "react";
 const App = () => {
   const dispatch = useDispatch();
   const { admin, isFetchingAdmin } = useSelector((state) => state.auth);
-  console.log("admin -", admin);
 
-  // if (isFetchingAdmin) {
+  // if (!isFetchingAdmin) {
   //   return (
   //     <div className="flex justify-center items-center h-screen">
   //       Loading...

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import AddProduct from "./AddProduct";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -8,20 +8,39 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { FaCircleChevronLeft, FaCircleChevronRight } from "react-icons/fa6";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { Button } from "@/components/ui/button";
+import { deleteProduct, getProducts } from "@/redux/reducer/productSlice";
+import RemoveProducts from "./RemoveProducts";
+import toast from "react-hot-toast";
 
 const Product = () => {
   const { products, loading, error } = useSelector((state) => state.product);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const dispatch = useDispatch();
+
+  const [previewProduct, setPreviewProduct] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [productToDelete, setProductToDelete] = useState(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const handleDelete = async () => {
+    try {
+      await dispatch(deleteProduct(productToDelete._id)).unwrap();
+      setShowConfirm(false);
+      setProductToDelete(null);
+      toast.success("Product deleted successfully");
+    } catch (err) {
+      toast.error("Failed to delete product");
+    }
+  };
 
   const nextImage = () => {
-    const images = getImageArray(selectedProduct);
+    const images = getImageArray(previewProduct);
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
 
   const prevImage = () => {
-    const images = getImageArray(selectedProduct);
+    const images = getImageArray(previewProduct);
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
@@ -29,6 +48,18 @@ const Product = () => {
     if (!product) return [];
     return [product.image1, product.image2, product.image3, product.image4];
   };
+
+  const fetchProducts = async () => {
+    try {
+      await dispatch(getProducts());
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   return (
     <div className="p-4 w-full flex flex-col items-center space-y-6">
@@ -38,9 +69,9 @@ const Product = () => {
         {products.map((product) => (
           <Card
             key={product._id}
-            className="cursor-pointer"
+            className="cursor-pointer bg-gray-400 dark:bg-gray-800 hover:shadow-lg transition-shadow duration-300"
             onClick={() => {
-              setSelectedProduct(product);
+              setPreviewProduct(product);
               setCurrentImageIndex(0);
             }}
           >
@@ -52,19 +83,48 @@ const Product = () => {
               />
               <h3 className="font-semibold text-lg">{product.name}</h3>
               <p className="text-sm">₹{product.price}</p>
+
+              {/* Buttons: prevent preview when clicked */}
+              <div className="flex justify-between items-center pt-2">
+                <span className="text-sm font-medium">{product.name}</span>
+                <div className="space-x-2">
+                  <Button
+                    className="btn-primary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // TODO: Implement edit logic
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    className="bg-red-500 text-white hover:bg-red-600"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setProductToDelete(product);
+                      setShowConfirm(true);
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {selectedProduct && (
+      {/* Product Preview Dialog */}
+      {previewProduct && (
         <Dialog
-          open={!!selectedProduct}
-          onOpenChange={() => setSelectedProduct(null)}
+          open={!!previewProduct}
+          onOpenChange={(open) => {
+            if (!open) setPreviewProduct(null);
+          }}
         >
           <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{selectedProduct.name}</DialogTitle>
+              <DialogTitle>{previewProduct.name}</DialogTitle>
             </DialogHeader>
 
             <div className="relative w-full flex items-center justify-center">
@@ -75,7 +135,7 @@ const Product = () => {
                 <FaCircleChevronLeft size={24} />
               </button>
               <img
-                src={getImageArray(selectedProduct)[currentImageIndex]}
+                src={getImageArray(previewProduct)[currentImageIndex]}
                 alt={`Image ${currentImageIndex + 1}`}
                 className="w-full max-h-[60vh] object-contain rounded-md"
               />
@@ -88,20 +148,32 @@ const Product = () => {
             </div>
 
             <div className="mt-4 space-y-1">
-              <p>{selectedProduct.description}</p>
+              <p>{previewProduct.description}</p>
               <p>
-                Category: {selectedProduct.category} /{" "}
-                {selectedProduct.subCategory}
+                Category: {previewProduct.category} /{" "}
+                {previewProduct.subCategory}
               </p>
-              <p>Sizes: {selectedProduct.sizes.join(", ")}</p>
-              <p>Price: ₹{selectedProduct.price}</p>
-              {selectedProduct.bestSeller && (
+              <p>Sizes: {previewProduct.sizes.join(", ")}</p>
+              <p>Price: ₹{previewProduct.price}</p>
+              {previewProduct.bestSeller && (
                 <p className="text-green-500 font-semibold">Best Seller</p>
               )}
             </div>
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <RemoveProducts
+        open={showConfirm}
+        setOpen={(val) => {
+          setShowConfirm(val);
+          if (!val) setProductToDelete(null);
+        }}
+        onConfirm={handleDelete}
+        title="Delete Product"
+        description={`Are you sure you want to delete "${productToDelete?.name}"? This action cannot be undone.`}
+      />
     </div>
   );
 };

@@ -20,7 +20,7 @@ productRoute.post(
   addProduct
 );
 productRoute.get("/detail", getProduct);
-productRoute.patch("/update", updateProduct);
-productRoute.delete("/delete", deleteProduct);
+productRoute.patch("/update/:id", updateProduct);
+productRoute.delete("/delete/:id", deleteProduct);
 
 export default productRoute;

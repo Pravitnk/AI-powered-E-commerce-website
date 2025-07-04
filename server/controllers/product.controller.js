@@ -3,8 +3,6 @@ import Product from "../models/product.model.js";
 
 //create/add product (POST)
 export const addProduct = async (req, res) => {
-  console.log("🟡 Incoming request to add product");
-
   try {
     const {
       name,
@@ -35,9 +33,6 @@ export const addProduct = async (req, res) => {
         message: "All required fields and 4 images must be provided",
       });
     }
-
-    console.log("🟢 All required data received");
-
     // 2. Upload images
     // const imageUploads = await Promise.all([
     //   uploadOnCloudinary(req.files.image1[0].path),
@@ -63,9 +58,6 @@ export const addProduct = async (req, res) => {
         message: "One or more image uploads failed",
       });
     }
-
-    console.log("✅ All images uploaded");
-
     // 3. Create product object
     const productData = {
       name,
@@ -84,7 +76,6 @@ export const addProduct = async (req, res) => {
 
     // 4. Save to DB
     const product = await Product.create(productData);
-    console.log("✅ Product saved to DB");
 
     return res.status(201).json({
       success: true,
@@ -102,17 +93,82 @@ export const addProduct = async (req, res) => {
 //get product (GET)
 export const getProduct = async (req, res) => {
   try {
-  } catch (error) {}
+    const products = await Product.find({}).sort({ date: -1 });
+    return res.status(200).json({
+      success: true,
+      products,
+    });
+  } catch (error) {
+    console.error("❌ Error fetching products:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to get products",
+    });
+  }
 };
 
 //update product (PATCH)
 export const updateProduct = async (req, res) => {
   try {
-  } catch (error) {}
+    const { id } = req.params;
+    const updatedFields = req.body;
+
+    if (updatedFields.price) {
+      updatedFields.price = Number(updatedFields.price);
+    }
+    if (updatedFields.sizes && typeof updatedFields.sizes === "string") {
+      updatedFields.sizes = JSON.parse(updatedFields.sizes);
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(id, updatedFields, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedProduct) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Product updated successfully",
+      product: updatedProduct,
+    });
+  } catch (error) {
+    console.error("❌ Error updating product:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update product",
+    });
+  }
 };
 
 //delete product (DELETE)
 export const deleteProduct = async (req, res) => {
   try {
-  } catch (error) {}
+    const { id } = req.params;
+
+    const deletedProduct = await Product.findByIdAndDelete(id);
+
+    if (!deletedProduct) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Product deleted successfully",
+    });
+  } catch (error) {
+    console.error("❌ Error deleting product:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete product",
+    });
+  }
 };
