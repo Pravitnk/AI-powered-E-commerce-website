@@ -10,12 +10,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-console.log("Cloudinary ENV:", {
-  name: process.env.CLOUDINARY_CLOUD_NAME,
-  key: process.env.CLOUDINARY_API_KEY,
-  secret: process.env.CLOUDINARY_API_SECRET ? "SET" : "MISSING",
-});
-
 export const getUserDetail = async (req, res) => {
   try {
     const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
@@ -83,9 +77,7 @@ export const updateUser = async (req, res) => {
     }
 
     let pictureUrl;
-    console.log("Received image:", image?.slice(0, 50));
 
-    console.log("Received base64 image length:", image?.length);
     if (image) {
       try {
         const uploaded = await cloudinary.uploader.upload(image, {

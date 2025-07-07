@@ -1,14 +1,12 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -18,18 +16,18 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useDispatch, useSelector } from "react-redux";
-import { addProduct } from "@/redux/reducer/productSlice";
-import toast from "react-hot-toast";
+import { Button } from "@/components/ui/button";
 import { FaCamera } from "react-icons/fa";
+import { useDispatch } from "react-redux";
+import { updateProduct } from "@/redux/reducer/productSlice";
+import toast from "react-hot-toast";
 
 const MAX_IMAGES = 4;
 
-const AddProduct = ({ onProductAdd }) => {
+const EditProduct = ({ open, setOpen, product, loading, error }) => {
   const dispatch = useDispatch();
-  const { loading } = useSelector((state) => state.product);
+  const fileInputs = useRef([]);
 
-  const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -38,29 +36,49 @@ const AddProduct = ({ onProductAdd }) => {
     subCategory: "",
     sizes: "",
     bestSeller: false,
+    images: Array(MAX_IMAGES).fill(null), // for file objects
   });
 
-  const [images, setImages] = useState(Array(MAX_IMAGES).fill(null));
-  const [imageFiles, setImageFiles] = useState(Array(MAX_IMAGES).fill(null));
-  const fileInputs = useRef([]);
+  const [previews, setPreviews] = useState(Array(MAX_IMAGES).fill(null)); // for previews (URL or existing URL)
+
+  useEffect(() => {
+    if (product) {
+      setFormData({
+        name: product.name || "",
+        description: product.description || "",
+        price: product.price || "",
+        category: product.category || "",
+        subCategory: product.subCategory || "",
+        sizes: product.sizes?.join(", ") || "",
+        bestSeller: product.bestSeller || false,
+        images: Array(MAX_IMAGES).fill(null),
+      });
+
+      setPreviews([
+        product.image1 || null,
+        product.image2 || null,
+        product.image3 || null,
+        product.image4 || null,
+      ]);
+    }
+  }, [product]);
+
+  const triggerFileInput = (index) => {
+    fileInputs.current[index]?.click();
+  };
 
   const handleImageChange = (e, index) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const updatedImages = [...images];
-    updatedImages[index] = URL.createObjectURL(file);
-    setImages(updatedImages);
+    const updatedPreviews = [...previews];
+    const updatedImages = [...formData.images];
 
-    const updatedFiles = [...imageFiles];
-    updatedFiles[index] = file;
-    setImageFiles(updatedFiles);
-  };
+    updatedPreviews[index] = URL.createObjectURL(file);
+    updatedImages[index] = file;
 
-  const triggerFileInput = (index) => {
-    if (fileInputs.current[index]) {
-      fileInputs.current[index].click();
-    }
+    setPreviews(updatedPreviews);
+    setFormData((prev) => ({ ...prev, images: updatedImages }));
   };
 
   const handleChange = (e) => {
@@ -75,7 +93,7 @@ const AddProduct = ({ onProductAdd }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const isFormValid = () => {
+  const isValid = () => {
     const { name, description, price, category, subCategory, sizes } = formData;
     return (
       name.trim() &&
@@ -83,15 +101,11 @@ const AddProduct = ({ onProductAdd }) => {
       price &&
       category &&
       subCategory &&
-      sizes.trim() &&
-      imageFiles.filter(Boolean).length === MAX_IMAGES
+      sizes.trim()
     );
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!isFormValid()) return;
-
+  const handleSubmit = async () => {
     const data = new FormData();
     data.append("name", formData.name);
     data.append("description", formData.description);
@@ -101,59 +115,49 @@ const AddProduct = ({ onProductAdd }) => {
     data.append("sizes", JSON.stringify(formData.sizes.split(",")));
     data.append("bestSeller", formData.bestSeller);
 
-    imageFiles.forEach((file, idx) => {
-      data.append(`image${idx + 1}`, file);
+    formData.images.forEach((file, idx) => {
+      if (file) {
+        data.append(`image${idx + 1}`, file);
+      }
     });
 
     try {
-      await dispatch(addProduct(data)).unwrap();
-      toast.success("Product added successfully");
+      await dispatch(
+        updateProduct({ id: product._id, updateData: data })
+      ).unwrap();
+      toast.success("Product updated");
       setOpen(false);
-      setFormData({
-        name: "",
-        description: "",
-        price: "",
-        category: "",
-        subCategory: "",
-        sizes: "",
-        bestSeller: false,
-      });
-      setImages(Array(MAX_IMAGES).fill(null));
-      setImageFiles(Array(MAX_IMAGES).fill(null));
     } catch (error) {
-      toast.error(`Failed to add product: ${error}`);
-      console.error("Failed to add product:", error);
+      toast.error("Failed to update product");
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button onClick={() => setOpen(true)} className="btn-primary">
-          Add Product
-        </Button>
-      </DialogTrigger>
       <DialogContent className="max-w-2xl w-full">
         <DialogHeader>
-          <DialogTitle>Add New Product</DialogTitle>
+          <DialogTitle>Edit Product</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <Input
             name="name"
-            placeholder="Product Name"
             value={formData.name}
             onChange={handleChange}
+            placeholder="Product Name"
             required
           />
           <Input
             name="price"
             type="number"
-            placeholder="Price"
             value={formData.price}
             onChange={handleChange}
+            placeholder="Price"
             required
           />
-          <Select onValueChange={(val) => handleSelectChange("category", val)}>
+          <Select
+            value={formData.category}
+            onValueChange={(val) => handleSelectChange("category", val)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Category" />
             </SelectTrigger>
@@ -163,6 +167,7 @@ const AddProduct = ({ onProductAdd }) => {
             </SelectContent>
           </Select>
           <Select
+            value={formData.subCategory}
             onValueChange={(val) => handleSelectChange("subCategory", val)}
           >
             <SelectTrigger>
@@ -175,14 +180,15 @@ const AddProduct = ({ onProductAdd }) => {
           </Select>
           <Input
             name="sizes"
-            placeholder="Sizes (comma separated)"
             value={formData.sizes}
             onChange={handleChange}
+            placeholder="Sizes (comma separated)"
             required
           />
-          <Label>Upload Images</Label>
+
+          <Label>Update Images</Label>
           <div className="flex gap-4 flex-wrap">
-            {images.map((img, index) => (
+            {previews.map((img, index) => (
               <div
                 key={index}
                 onClick={() => triggerFileInput(index)}
@@ -191,7 +197,7 @@ const AddProduct = ({ onProductAdd }) => {
                 {img ? (
                   <img
                     src={img}
-                    alt={`preview-${index}`}
+                    alt={`img-${index}`}
                     className="object-cover w-full h-full"
                   />
                 ) : (
@@ -207,11 +213,12 @@ const AddProduct = ({ onProductAdd }) => {
               </div>
             ))}
           </div>
+
           <Textarea
             name="description"
-            placeholder="Description"
             value={formData.description}
             onChange={handleChange}
+            placeholder="Description"
             required
           />
           <div className="flex items-center gap-2">
@@ -224,15 +231,18 @@ const AddProduct = ({ onProductAdd }) => {
             />
             <label htmlFor="bestSeller">Best Seller</label>
           </div>
-          <DialogFooter>
-            <Button type="submit" disabled={!isFormValid() || loading}>
-              {loading ? "Adding..." : "Submit"}
-            </Button>
-          </DialogFooter>
-        </form>
+        </div>
+        <DialogFooter className="mt-4">
+          <Button variant="secondary" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button disabled={!isValid()} onClick={handleSubmit}>
+            {loading ? "Saving..." : "Save"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
 
-export default AddProduct;
+export default EditProduct;

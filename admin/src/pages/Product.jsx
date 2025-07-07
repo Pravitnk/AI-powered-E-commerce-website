@@ -13,15 +13,22 @@ import { Button } from "@/components/ui/button";
 import { deleteProduct, getProducts } from "@/redux/reducer/productSlice";
 import RemoveProducts from "./RemoveProducts";
 import toast from "react-hot-toast";
+import EditProduct from "./EditProduct";
 
 const Product = () => {
   const { products, loading, error } = useSelector((state) => state.product);
+  console.log(products);
+
   const dispatch = useDispatch();
 
   const [previewProduct, setPreviewProduct] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
   const [productToDelete, setProductToDelete] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const [productToEdit, setProductToEdit] = useState(null);
+  const [showEdit, setShowEdit] = useState(false);
 
   const handleDelete = async () => {
     try {
@@ -65,11 +72,15 @@ const Product = () => {
     <div className="p-4 w-full flex flex-col items-center space-y-6">
       <AddProduct />
 
+      <h1 className="lg:text-4xl font-bold tracking-wide md:text-3xl sm:text-2xl">
+        All Products
+      </h1>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-6xl">
         {products.map((product) => (
           <Card
             key={product._id}
-            className="cursor-pointer bg-gray-400 dark:bg-gray-800 hover:shadow-lg transition-shadow duration-300"
+            className="cursor-pointer bg-gray-400 dark:bg-gray-800 hover:shadow-lg transition-all duration-400 hover:scale-[103%]"
             onClick={() => {
               setPreviewProduct(product);
               setCurrentImageIndex(0);
@@ -89,16 +100,18 @@ const Product = () => {
                 <span className="text-sm font-medium">{product.name}</span>
                 <div className="space-x-2">
                   <Button
-                    className="btn-primary"
+                    className="btn-primary cursor-pointer"
                     onClick={(e) => {
                       e.stopPropagation();
                       // TODO: Implement edit logic
+                      setProductToEdit(product);
+                      setShowEdit(true);
                     }}
                   >
                     Edit
                   </Button>
                   <Button
-                    className="bg-red-500 text-white hover:bg-red-600"
+                    className="bg-red-500 text-white hover:bg-red-600 cursor-pointer"
                     onClick={(e) => {
                       e.stopPropagation();
                       setProductToDelete(product);
@@ -174,6 +187,23 @@ const Product = () => {
         title="Delete Product"
         description={`Are you sure you want to delete "${productToDelete?.name}"? This action cannot be undone.`}
       />
+
+      {/* edit Confirmation Dialog */}
+      {/* Edit Product Dialog (Component logic will come later) */}
+      <EditProduct
+        open={showEdit}
+        loading={loading}
+        error={error}
+        setOpen={(val) => {
+          setShowEdit(val);
+          if (!val) setProductToEdit(null);
+        }}
+        product={productToEdit}
+      />
+
+      {/* <section className="min-h-screen bg-zinc-600">Section 1</section>
+      <section className="min-h-screen bg-zinc-700">Section 2</section>
+      <section className="min-h-screen bg-zinc-800">Section 3</section> */}
     </div>
   );
 };

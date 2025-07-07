@@ -10,6 +10,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { fetchAdmin } from "./redux/reducer/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
+import useLenis from "./hooks/useLenis";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -23,6 +24,7 @@ const App = () => {
   //   );
   // }
 
+  useLenis();
   useEffect(() => {
     dispatch(fetchAdmin());
   }, []);

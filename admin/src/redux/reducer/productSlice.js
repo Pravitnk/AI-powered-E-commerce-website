@@ -42,7 +42,13 @@ export const updateProduct = createAsyncThunk(
   "product/updateProduct",
   async ({ id, updateData }, { rejectWithValue }) => {
     try {
-      const res = await axios.patch(`${API}/update/${id}`, updateData);
+      const res = await axios.patch(`${API}/update/${id}`, updateData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log("✅ Updated product from backend:", res);
+
       return res.data?.product;
     } catch (error) {
       const message =

@@ -13,7 +13,6 @@ export const addProduct = async (req, res) => {
       sizes,
       bestSeller,
     } = req.body;
-    console.log("🧾 req.files:", req.files);
 
     // 1. Validate fields
     if (
@@ -111,13 +110,35 @@ export const getProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const updatedFields = req.body;
+    let updatedFields = { ...req.body };
 
+    // Parse sizes and price
+    if (updatedFields.sizes) {
+      updatedFields.sizes = JSON.parse(updatedFields.sizes);
+    }
     if (updatedFields.price) {
       updatedFields.price = Number(updatedFields.price);
     }
-    if (updatedFields.sizes && typeof updatedFields.sizes === "string") {
-      updatedFields.sizes = JSON.parse(updatedFields.sizes);
+
+    const imageFields = ["image1", "image2", "image3", "image4"];
+
+    // ✅ Fetch existing product only once
+    const existingProduct = await Product.findById(id);
+    if (!existingProduct) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
+
+    // ✅ Process image uploads
+    for (let field of imageFields) {
+      if (req.files?.[field]?.[0]) {
+        const uploaded = await uploadOnCloudinary(req.files[field][0].path);
+        updatedFields[field] = uploaded;
+      } else if (!updatedFields[field]) {
+        // Only retain if not already updated
+        updatedFields[field] = existingProduct[field];
+      }
     }
 
     const updatedProduct = await Product.findByIdAndUpdate(id, updatedFields, {
@@ -125,21 +146,14 @@ export const updateProduct = async (req, res) => {
       runValidators: true,
     });
 
-    if (!updatedProduct) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
-    }
-
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "Product updated successfully",
       product: updatedProduct,
     });
   } catch (error) {
     console.error("❌ Error updating product:", error.message);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: "Failed to update product",
     });

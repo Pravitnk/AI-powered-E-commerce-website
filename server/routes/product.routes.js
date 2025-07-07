@@ -20,7 +20,16 @@ productRoute.post(
   addProduct
 );
 productRoute.get("/detail", getProduct);
-productRoute.patch("/update/:id", updateProduct);
+productRoute.patch(
+  "/update/:id",
+  upload.fields([
+    { name: "image1", maxCount: 1 },
+    { name: "image2", maxCount: 1 },
+    { name: "image3", maxCount: 1 },
+    { name: "image4", maxCount: 1 },
+  ]),
+  updateProduct
+);
 productRoute.delete("/delete/:id", deleteProduct);
 
 export default productRoute;
