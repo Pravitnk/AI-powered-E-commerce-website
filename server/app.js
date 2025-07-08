@@ -6,6 +6,7 @@ import authRoute from "./routes/auth.routes.js";
 import cors from "cors";
 import userRoute from "./routes/user.routes.js";
 import productRoute from "./routes/product.routes.js";
+import cartRoute from "./routes/cart.routes.js";
 
 dotenv.config();
 connectDB(); // 🔗 Connect to MongoDB
@@ -24,6 +25,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
 app.use("/api/product", productRoute);
+app.use("/api/cart", cartRoute);
 app.get("/", (req, res) => {
   res.send("jelp");
 });

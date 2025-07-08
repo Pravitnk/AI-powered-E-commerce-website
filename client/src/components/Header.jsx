@@ -14,6 +14,7 @@ import {
 import { IoSunnySharp } from "react-icons/io5";
 import { IoSunnyOutline } from "react-icons/io5";
 import { debounce } from "lodash";
+import CartSheet from "./CartSheet";
 
 const Header = () => {
   const { products } = useSelector((state) => state.product);
@@ -22,6 +23,7 @@ const Header = () => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filtered, setFiltered] = useState([]);
+  const [cartOpen, setCartOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -141,8 +143,15 @@ const Header = () => {
         {/* Right Side */}
         <div className="hidden md:flex items-center gap-4">
           <>
-            <FiShoppingCart className="w-6 h-6 text-gray-700 hover:text-black cursor-pointer" />
-
+            <Sheet open={cartOpen} onOpenChange={setCartOpen}>
+              <SheetTrigger asChild>
+                <FiShoppingCart
+                  onClick={() => setCartOpen(true)}
+                  className="w-6 h-6 text-gray-700 hover:text-black cursor-pointer"
+                />
+              </SheetTrigger>
+              <CartSheet onClose={() => setCartOpen(false)} />
+            </Sheet>
             <Popover>
               <PopoverTrigger asChild>
                 <button>
