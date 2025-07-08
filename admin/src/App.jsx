@@ -15,6 +15,15 @@ import useLenis from "./hooks/useLenis";
 const App = () => {
   const dispatch = useDispatch();
   const { admin, isFetchingAdmin } = useSelector((state) => state.auth);
+  const mode = useSelector((state) => state.theme.mode);
+
+  useEffect(() => {
+    if (mode === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [mode]);
 
   // if (!isFetchingAdmin) {
   //   return (
