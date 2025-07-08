@@ -24,6 +24,7 @@ import toast from "react-hot-toast";
 import { FaCamera } from "react-icons/fa";
 
 const MAX_IMAGES = 4;
+const AVAILABLE_SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 
 const AddProduct = ({ onProductAdd }) => {
   const dispatch = useDispatch();
@@ -36,7 +37,7 @@ const AddProduct = ({ onProductAdd }) => {
     price: "",
     category: "",
     subCategory: "",
-    sizes: "",
+    sizes: [],
     bestSeller: false,
   });
 
@@ -55,6 +56,15 @@ const AddProduct = ({ onProductAdd }) => {
     const updatedFiles = [...imageFiles];
     updatedFiles[index] = file;
     setImageFiles(updatedFiles);
+  };
+  //sizes
+  const handleSizeToggle = (size) => {
+    setFormData((prev) => {
+      const sizes = prev.sizes.includes(size)
+        ? prev.sizes.filter((s) => s !== size)
+        : [...prev.sizes, size];
+      return { ...prev, sizes };
+    });
   };
 
   const triggerFileInput = (index) => {
@@ -83,11 +93,10 @@ const AddProduct = ({ onProductAdd }) => {
       price &&
       category &&
       subCategory &&
-      sizes.trim() &&
+      sizes.length > 0 && // Now checking length of array
       imageFiles.filter(Boolean).length === MAX_IMAGES
     );
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isFormValid()) return;
@@ -98,7 +107,7 @@ const AddProduct = ({ onProductAdd }) => {
     data.append("price", formData.price);
     data.append("category", formData.category);
     data.append("subCategory", formData.subCategory);
-    data.append("sizes", JSON.stringify(formData.sizes.split(",")));
+    data.append("sizes", JSON.stringify(formData.sizes));
     data.append("bestSeller", formData.bestSeller);
 
     imageFiles.forEach((file, idx) => {
@@ -173,13 +182,19 @@ const AddProduct = ({ onProductAdd }) => {
               <SelectItem value="Phones">Phones</SelectItem>
             </SelectContent>
           </Select>
-          <Input
-            name="sizes"
-            placeholder="Sizes (comma separated)"
-            value={formData.sizes}
-            onChange={handleChange}
-            required
-          />
+          <Label>Available Sizes</Label>
+          <div className="flex flex-wrap gap-3">
+            {AVAILABLE_SIZES.map((size) => (
+              <label key={size} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.sizes.includes(size)}
+                  onChange={() => handleSizeToggle(size)}
+                />
+                {size}
+              </label>
+            ))}
+          </div>
           <Label>Upload Images</Label>
           <div className="flex gap-4 flex-wrap">
             {images.map((img, index) => (

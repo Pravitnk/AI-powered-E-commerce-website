@@ -23,6 +23,7 @@ import { updateProduct } from "@/redux/reducer/productSlice";
 import toast from "react-hot-toast";
 
 const MAX_IMAGES = 4;
+const AVAILABLE_SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 
 const EditProduct = ({ open, setOpen, product, loading, error }) => {
   const dispatch = useDispatch();
@@ -49,7 +50,7 @@ const EditProduct = ({ open, setOpen, product, loading, error }) => {
         price: product.price || "",
         category: product.category || "",
         subCategory: product.subCategory || "",
-        sizes: product.sizes?.join(", ") || "",
+        sizes: product.sizes || [], // ← now an array
         bestSeller: product.bestSeller || false,
         images: Array(MAX_IMAGES).fill(null),
       });
@@ -62,7 +63,6 @@ const EditProduct = ({ open, setOpen, product, loading, error }) => {
       ]);
     }
   }, [product]);
-
   const triggerFileInput = (index) => {
     fileInputs.current[index]?.click();
   };
@@ -79,6 +79,16 @@ const EditProduct = ({ open, setOpen, product, loading, error }) => {
 
     setPreviews(updatedPreviews);
     setFormData((prev) => ({ ...prev, images: updatedImages }));
+  };
+
+  //sizes
+  const handleSizeToggle = (size) => {
+    setFormData((prev) => {
+      const sizes = prev.sizes.includes(size)
+        ? prev.sizes.filter((s) => s !== size)
+        : [...prev.sizes, size];
+      return { ...prev, sizes };
+    });
   };
 
   const handleChange = (e) => {
@@ -101,10 +111,9 @@ const EditProduct = ({ open, setOpen, product, loading, error }) => {
       price &&
       category &&
       subCategory &&
-      sizes.trim()
+      sizes.length > 0
     );
   };
-
   const handleSubmit = async () => {
     const data = new FormData();
     data.append("name", formData.name);
@@ -112,7 +121,7 @@ const EditProduct = ({ open, setOpen, product, loading, error }) => {
     data.append("price", formData.price);
     data.append("category", formData.category);
     data.append("subCategory", formData.subCategory);
-    data.append("sizes", JSON.stringify(formData.sizes.split(",")));
+    data.append("sizes", JSON.stringify(formData.sizes));
     data.append("bestSeller", formData.bestSeller);
 
     formData.images.forEach((file, idx) => {
@@ -178,14 +187,20 @@ const EditProduct = ({ open, setOpen, product, loading, error }) => {
               <SelectItem value="Phones">Phones</SelectItem>
             </SelectContent>
           </Select>
-          <Input
-            name="sizes"
-            value={formData.sizes}
-            onChange={handleChange}
-            placeholder="Sizes (comma separated)"
-            required
-          />
 
+          <Label>Available Sizes</Label>
+          <div className="flex flex-wrap gap-3">
+            {AVAILABLE_SIZES.map((size) => (
+              <label key={size} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.sizes.includes(size)}
+                  onChange={() => handleSizeToggle(size)}
+                />
+                {size}
+              </label>
+            ))}
+          </div>
           <Label>Update Images</Label>
           <div className="flex gap-4 flex-wrap">
             {previews.map((img, index) => (
