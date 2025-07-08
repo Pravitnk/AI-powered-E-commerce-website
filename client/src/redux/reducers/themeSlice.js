@@ -16,15 +16,24 @@ const themeSlice = createSlice({
   name: "theme",
   initialState,
   reducers: {
-    toggleTheme: (state) => {
-      state.mode = state.mode === "light" ? "dark" : "light";
-      localStorage.setItem("theme", state.mode);
-      document.documentElement.classList.toggle("dark", state.mode === "dark");
-    },
     setTheme: (state, action) => {
       state.mode = action.payload;
       localStorage.setItem("theme", action.payload);
-      document.documentElement.classList.toggle("dark", action.payload === "dark");
+      if (action.payload === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    },
+
+    toggleTheme: (state) => {
+      state.mode = state.mode === "light" ? "dark" : "light";
+      localStorage.setItem("theme", state.mode);
+      if (state.mode === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
     },
   },
 });

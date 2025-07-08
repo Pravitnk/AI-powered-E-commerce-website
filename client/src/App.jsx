@@ -11,7 +11,7 @@ import { getUser } from "./redux/reducers/userSlice";
 import Products from "./pages/Products";
 
 const App = () => {
-  const theme = useSelector((state) => state.theme.mode); // 'light' or 'dark'
+  const mode = useSelector((state) => state.theme.mode);
   const { user } = useSelector((state) => state.user); // 'light' or 'dark'
   const dispatch = useDispatch();
   const fetchUser = async () => {
@@ -23,6 +23,13 @@ const App = () => {
   };
   console.log(user);
 
+  useEffect(() => {
+    if (mode === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [mode]);
   useEffect(() => {
     fetchUser();
   }, []);
