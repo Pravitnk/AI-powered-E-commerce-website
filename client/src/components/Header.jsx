@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FiShoppingCart, FiMenu } from "react-icons/fi";
 import { MdAccountCircle } from "react-icons/md";
 import { Link, useNavigate } from "react-router-dom";
@@ -13,15 +13,56 @@ import {
 } from "@/components/ui/popover";
 import { IoSunnySharp } from "react-icons/io5";
 import { IoSunnyOutline } from "react-icons/io5";
+import { debounce } from "lodash";
 
 const Header = () => {
-  const navigate = useNavigate();
-  const isLoggedIn = false; // Replace with real auth logic
-  const [open, setOpen] = useState(false);
-  const dispatch = useDispatch();
-  const theme = useSelector((state) => state.theme.mode);
+  const { products } = useSelector((state) => state.product);
   const { user } = useSelector((state) => state.user);
-  console.log(user);
+  const dispatch = useDispatch();
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filtered, setFiltered] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+  const navigate = useNavigate();
+  const theme = useSelector((state) => state.theme.mode);
+
+  // Debounced filtering logic
+  const handleSearch = useCallback(
+    debounce((query) => {
+      if (!query.trim()) {
+        setFiltered([]);
+        return;
+      }
+      const matches = products.filter((p) =>
+        p.name.toLowerCase().includes(query.toLowerCase())
+      );
+      setFiltered(matches.slice(0, 5)); // Top 5
+      setShowDropdown(true);
+    }, 300), // Throttle delay
+    [products]
+  );
+
+  useEffect(() => {
+    handleSearch(search);
+  }, [search, handleSearch]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleResultClick = (id) => {
+    navigate(`/products/${id}`);
+    setSearch("");
+    setShowDropdown(false);
+  };
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
@@ -62,12 +103,39 @@ const Header = () => {
           </Link>
         </nav>
 
-        <div className="hidden md:flex items-center gap-4">
+        <div className="relative w-full max-w-xs md:max-w-md" ref={dropdownRef}>
           <input
             type="text"
-            placeholder="search"
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white  text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-400"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search for products..."
+            className="w-full px-4 py-2 border border-gray-300  rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-400"
           />
+
+          {showDropdown && search && (
+            <div className="absolute top-full mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md z-50 max-h-64 overflow-y-auto">
+              {filtered.length > 0 ? (
+                filtered.map((p) => (
+                  <div
+                    key={p._id}
+                    className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-sm text-gray-800 dark:text-gray-200 flex items-center gap-3"
+                    onClick={() => handleResultClick(p._id)}
+                  >
+                    <img
+                      src={p.image1}
+                      alt={p.name}
+                      className="w-8 h-8 rounded object-cover"
+                    />
+                    <span>{p.name}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="px-4 py-2 text-gray-500 dark:text-gray-400 text-sm">
+                  No products found.
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Right Side */}

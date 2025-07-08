@@ -9,11 +9,14 @@ import EditProfile from "./pages/Profile";
 import { Toaster } from "react-hot-toast";
 import { getUser } from "./redux/reducers/userSlice";
 import Products from "./pages/Products";
+import useLenis from "./hooks/useLenis";
 
 const App = () => {
   const mode = useSelector((state) => state.theme.mode);
   const { user } = useSelector((state) => state.user); // 'light' or 'dark'
   const dispatch = useDispatch();
+
+  useLenis();
   const fetchUser = async () => {
     try {
       await dispatch(getUser());
@@ -21,7 +24,6 @@ const App = () => {
       console.log("error while fetching user..", error);
     }
   };
-  console.log(user);
 
   useEffect(() => {
     if (mode === "dark") {
