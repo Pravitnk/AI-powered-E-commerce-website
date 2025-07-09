@@ -10,12 +10,15 @@ import { FaCircleChevronLeft, FaCircleChevronRight } from "react-icons/fa6";
 import { useDispatch, useSelector } from "react-redux";
 import { getProducts } from "@/redux/reducers/productSlice";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Products = () => {
   const { products, loading, error } = useSelector((state) => state.product);
 
   const dispatch = useDispatch();
-
+  const navigate = useNavigate();
   const [previewProduct, setPreviewProduct] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [productToDelete, setProductToDelete] = useState(null);
@@ -50,9 +53,20 @@ const Products = () => {
   return (
     <div className="p-4 w-full flex flex-col items-center space-y-6">
       {loading && (
-        <div className="flex items-center space-x-2 text-lg text-orange-500">
-          <Loader2 className="animate-spin" size={24} />
-          <span>Loading products...</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-6xl">
+          {Array(6)
+            .fill(0)
+            .map((_, idx) => (
+              <Card
+                key={idx}
+                className="bg-gray-300 dark:bg-gray-800 p-4 rounded-md space-y-3"
+              >
+                <Skeleton className="w-full h-40 rounded-md" />
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2 mb-3" />
+                <Skeleton className="h-10 w-full" />
+              </Card>
+            ))}
         </div>
       )}
 
@@ -96,7 +110,13 @@ const Products = () => {
             if (!open) setPreviewProduct(null);
           }}
         >
-          <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <DialogContent
+            className="max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={() => {
+              navigate(`/product/${previewProduct._id}`);
+              setPreviewProduct(null);
+            }}
+          >
             <DialogHeader>
               <DialogTitle>{previewProduct.name}</DialogTitle>
             </DialogHeader>

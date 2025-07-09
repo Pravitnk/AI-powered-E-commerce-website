@@ -3,6 +3,7 @@ import {
   addProduct,
   deleteProduct,
   getProduct,
+  getProductById,
   updateProduct,
 } from "../controllers/product.controller.js";
 import upload from "../middleware/multer.js";
@@ -20,6 +21,7 @@ productRoute.post(
   addProduct
 );
 productRoute.get("/detail", getProduct);
+productRoute.get("/:id", getProductById);
 productRoute.patch(
   "/update/:id",
   upload.fields([

@@ -2,9 +2,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { Card, CardContent } from "./ui/card";
 import { useEffect, useState } from "react";
 import { getProducts } from "@/redux/reducers/productSlice";
+import { Button } from "./ui/button";
+import { Skeleton } from "./ui/skeleton";
 
 const BestSeller = () => {
-  const { products } = useSelector((state) => state.product);
+  const { products, loading } = useSelector((state) => state.product);
   const dispatch = useDispatch();
 
   const [previewProduct, setPreviewProduct] = useState(null);
@@ -34,30 +36,44 @@ const BestSeller = () => {
 
       <div className="w-full max-w-7xl">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center">
-          {bestSellingProducts.map((product) => (
-            <Card
-              key={product._id}
-              className="w-full max-w-xs cursor-pointer bg-gray-200 dark:bg-gray-700 hover:shadow-lg transition-all hover:scale-[103%] duration-300"
-              onClick={() => {
-                setPreviewProduct(product);
-                setCurrentImageIndex(0);
-              }}
-            >
-              <CardContent className="p-4 space-y-2">
-                <img
-                  src={product.image1}
-                  alt={product.name}
-                  className="w-full h-40 object-cover rounded-md"
-                />
-                <h3 className="font-semibold text-lg text-gray-800 dark:text-white">
-                  {product.name}
-                </h3>
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  ₹{product.price}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+          {loading
+            ? Array(6)
+                .fill(0)
+                .map((_, idx) => (
+                  <Card
+                    key={idx}
+                    className="w-full max-w-xs bg-gray-200 dark:bg-gray-700 p-4 space-y-3 rounded-md"
+                  >
+                    <Skeleton className="w-full h-40 rounded-md" />
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-10 w-full" />
+                  </Card>
+                ))
+            : bestSellingProducts.map((product) => (
+                <Card
+                  key={product._id}
+                  className="w-full max-w-xs cursor-pointer bg-gray-200 dark:bg-gray-700 hover:shadow-lg transition-all hover:scale-[103%] duration-300"
+                  onClick={() => {
+                    setPreviewProduct(product);
+                    setCurrentImageIndex(0);
+                  }}
+                >
+                  <CardContent className="p-4 space-y-2">
+                    <img
+                      src={product.image1}
+                      alt={product.name}
+                      className="w-full h-40 object-cover rounded-md"
+                    />
+                    <h3 className="font-semibold text-lg text-gray-800 dark:text-white">
+                      {product.name}
+                    </h3>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      ₹{product.price}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
         </div>
       </div>
     </div>

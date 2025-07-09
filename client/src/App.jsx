@@ -10,6 +10,7 @@ import { Toaster } from "react-hot-toast";
 import { getUser } from "./redux/reducers/userSlice";
 import Products from "./pages/Products";
 import useLenis from "./hooks/useLenis";
+import SingleProduct from "./pages/SingleProduct";
 
 const App = () => {
   const mode = useSelector((state) => state.theme.mode);
@@ -48,6 +49,7 @@ const App = () => {
           <Route path="login" element={<Login />} />
           <Route path="profile" element={<EditProfile />} />
           <Route path="products" element={<Products />} />
+          <Route path="/product/:id" element={<SingleProduct />} />
         </Routes>
       </Router>
     </div>
